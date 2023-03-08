@@ -1,131 +1,148 @@
-class Model {
-    constructor() {
-        this.board = [];
-        for (let i = 0; i < 12; i++) {
-            this.board.push({ id: i, status: 0 }); // status 0 means no mole, 1 means mole present
-        }
+const View = (() => {
+    const domSelector = {
+        gameBoard: document.querySelector("#game-board"),
+        start: document.querySelector("#start-btn"),
+        timeLeft: document.querySelector("#time-left"),
+        score: document.querySelector("#score")
     }
 
-    updateBlockStatus(id, status) {
-        this.board[id].status = status;
-    }
-}
-
-
-class View {
-    constructor() {
-        this.gameBoard = document.getElementById('game-board');
-        this.blocks = document.querySelectorAll('.block');
-        this.scoreCounter = document.getElementById('score-counter');
-        this.timer = document.getElementById('time-left');
-    }
-
-    renderBoard(board) {
-        board.forEach((block, index) => {
-            const blockElement = this.blocks[index];
-            if (block.status === 1) {
-                blockElement.style.visibility = 'visible';
+    const createTemp = (dataArr) => {
+        let temp = "";
+        const map = new Map();
+        //0 and 1 represent mole status, 0 is empty, 1 is present
+        map.set(0, '');
+        map.set(1, '<img src="./Assets/mole.jpeg"/>');
+        for (let index in dataArr) {
+            if (index % 4 == 0) {
+                temp += `<div class="row">
+                <div class="block" id="${index}">${map.get(dataArr[index])}</div>`
+            } else if (index % 4 == 3) {
+                temp += `<div class="block" id="${index}">${map.get(dataArr[index])}</div>
+                </div>`
             } else {
-                blockElement.style.visibility = 'hidden';
+                temp += `<div class="block" id="${index}">${map.get(dataArr[index])}</div>`
             }
-        });
+        }
+        return temp;
     }
 
-    renderScore(score) {
-        this.scoreCounter.innerText = `Score: ${score}`;
-    }
+    const render = (ele, template) => {
+        ele.innerHTML = template
+    };
 
-    renderTimer(time) {
-        this.timer.innerText = `${time}`;
-    }
+    return { domSelector, createTemp, render }
+})()
 
-    bindClickBlock(handler) {
-        this.gameBoard.addEventListener('click', event => {
+const Model = ((view) => {
+    const { createTemp, render, domSelector } = view;
 
-            if (event.target.matches('.block img')) {
-                const id = parseInt(event.target.id);
-                console.log(id);
-                handler(id);
-            }
-        });
-    }
-}
+    class State {
+        constructor() {
+            this._dataList = [];
+        }
 
+        get dataList() {
+            return this._dataList;
+        }
 
-class Controller {
-    constructor(model, view) {
-        this.model = model;
-        this.view = view;
-        this.score = 0;
-        this.time = 30; // set game time to 30 seconds
-        this.timerId = null; // variable to hold timer interval ID
-        this.moleIntervalId = null; // variable to hold mole creation interval ID
-        this.moleCount = 0; // variable to track number of moles present on the board
-        this.startBtn = document.getElementById('start-btn');
-        this.bindStartGame();
-    }
-
-    startGame() {
-        // reset game state
-        this.score = 0;
-        this.time = 30;
-        this.moleCount = 0;
-        this.model = new Model();
-        this.view.renderBoard(this.model.board);
-        this.view.renderScore(this.score);
-        this.view.renderTimer(this.time);
-
-        // start timer and mole creation
-        this.timerId = setInterval(() => {
-            this.time--;
-            this.view.renderTimer(this.time);
-            if (this.time <= 0) {
-                this.endGame();
-            }
-        }, 1000);
-
-        this.moleIntervalId = setInterval(() => {
-            if (this.moleCount >= 3) {
-                return;
-            }
-
-            const randomBlock = Math.floor(Math.random() * 12); // generate random block index
-            if (this.model.board[randomBlock].status === 0) { // check if block is empty
-                this.model.updateBlockStatus(randomBlock, 1); // update block status to have a mole
-                this.view.renderBoard(this.model.board); // render updated board
-                this.moleCount++;
-            }
-        }, 1000);
-
-        this.view.bindClickBlock((id) => {
-            this.clickBlock(id);
-        });
-    }
-
-    endGame() {
-        clearInterval(this.timerId);
-        clearInterval(this.moleIntervalId);
-        alert(`Game Over! Your score is ${this.score}`);
-    }
-
-    clickBlock(id) {
-        console.log(id);
-        if (id >= 0 && id < this.model.board.length && this.model.board[id].status == 1) {
-            this.score++;
-            this.view.renderScore(this.score);
-            this.model.updateBlockStatus(id, 0); // update block status to remove the mole
-            this.view.renderBoard(this.model.board); // render updated board
-            this.moleCount--;
+        set dataList(newList) {
+            this._dataList = newList;
+            const temp = createTemp(this._dataList);
+            render(domSelector.gameBoard, temp);
         }
     }
 
-    bindStartGame() {
-        this.startBtn.addEventListener('click', () => {
-            this.endGame();
-            this.startGame();
-        });
-    }
-}
+    class Score {
+        constructor() {
+            this._score = 0;
+        }
 
-const app = new Controller(new Model(), new View());
-app.startGame();
+        get data() {
+            return this._score;
+        }
+
+        set data(score) {
+            this._score = score;
+            render(domSelector.score, `Let's Go, your total score is: ${this._score}`);
+        }
+    }
+    return { State, Score }
+})(View)
+
+const Controller = ((view, model) => {
+    const { render, domSelector } = view;
+    const { State, Score } = model;
+    const state = new State();
+    const score = new Score();
+    let process;
+
+
+    const startGame = () => {
+        let inProcess = true;//initialize the status of the process
+        let time = 30; // initialize left time
+        state.dataList = new Array(12).fill(0);
+        score.data = 0; // initialize score
+
+        if (inProcess) {
+            process = setInterval(() => {
+                let count = 0;
+                for (let i = 0; i < state.dataList.length; i++) {
+                    if (state.dataList[i] === 1) {
+                        count++;
+                    };
+                };
+                //If mole less than 3, generate a new mole
+                if (count < 3) {
+                    let index = Math.floor(Math.random() * 12);
+                    while (state.dataList[index] == 1) {
+                        index = Math.floor(Math.random() * 12);
+                    };
+                    state.dataList[index] = 1;
+                    state.dataList = state.dataList;
+                };
+
+                if (time > 0) {
+                    time--;
+                } else {
+                    alert(`Game Over! Your score is ${score.data}`);
+                    endGame();
+                };
+                render(domSelector.timeLeft, `Time Left ${time}`);
+            }, 1000);
+        };
+    };
+
+    const endGame = () => {
+        inProcess = false;
+        clearInterval(process);
+    };
+
+    //click on the start button
+    domSelector.start.addEventListener('click', (event) => {
+        if (!inProcess) {
+            startGame();
+        } else {
+            endGame();
+            setTimeout(startGame, 1000);
+        };
+    });
+
+    //click on moles
+    domSelector.gameBoard.addEventListener('click', (event) => {
+        let index = event.target.id
+        if (state.dataList[index] == 1) {
+            state.dataList[index] = 0; // switch the mole status to empty
+            state.dataList = state.dataList;
+            score.data++;
+        }
+    })
+
+    //Get the initail array with no mole
+    const bootstrap = () => {
+        render(domSelector.score, `Let's Go, your total score is 0`);
+        startGame();
+    };
+    return { bootstrap }
+})(View, Model)
+
+Controller.bootstrap();

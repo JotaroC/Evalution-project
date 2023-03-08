@@ -2,41 +2,23 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whac-a-Mole</title>
-    <link rel="stylesheet" href="./Assets/style.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whac-a-Mole</title>
+  <link rel="stylesheet" href="./Assets/style.css">
 </head>
 
 <body>
-    <div id="header">
-        <h1>Welcome to Whack-a-mole</h1>
-        <div>
-            <p>Let's Go, your total score is <span id="score-counter">0</span></p>
-            <button id="start-btn">Start Game !</button>
-        </div>
-    </div>
-    <div id="game-board">
-        <div class="block"><img id= "0" src="./Assets/mole.jpeg"></div>
-        <div class="block"><img id= "1" src="./Assets/mole.jpeg"></div>
-        <div class="block"><img id= "2" src="./Assets/mole.jpeg"></div>
-        <div class="block"><img id= "3" src="./Assets/mole.jpeg"></div>
-        <div class="block"><img id= "4" src="./Assets/mole.jpeg"></div>
-        <div class="block"><img id= "5" src="./Assets/mole.jpeg"></div>
-        <div class="block"><img id= "6" src="./Assets/mole.jpeg"></div>
-        <div class="block"><img id= "7" src="./Assets/mole.jpeg"></div>
-        <div class="block"><img id= "8" src="./Assets/mole.jpeg"></div>
-        <div class="block"><img id= "9" src="./Assets/mole.jpeg"></div>
-        <div class="block"><img id= "10" src="./Assets/mole.jpeg"></div>
-        <div class="block"><img id= "11" src="./Assets/mole.jpeg"></div>
-    </div>
-    <div class="timer">
-        <span>Timer Left</span>
-        <div id="time-left">0</div>
-    </div>
+  <div id="header">
+    <h1>Welcome to Whack-a-mole</h1>
+    <h2 id="score"></h2>
+    <button id="start-btn">Start Game !</button>
+  </div>
+  <div id="game-board"></div>
+  <div class="timer" id="time-left">Time Left</div>
 
-    <script src="./Assets/index.js"></script>
+  <script src="./Assets/index.js"></script>
 </body>
 
 </html>
